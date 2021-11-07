@@ -17,12 +17,12 @@ class Mapper
 
     public:
         // Communication with Bus
-        virtual bool mapperCpuRead(uint16_t addr, uint32_t &mappedAddr) = 0;
-        virtual bool mapperCpuWrite(uint16_t addr,  uint32_t &mappedAddr, uint8_t data) = 0;
+        virtual bool mappedPrgRead(uint16_t addr, uint32_t &mappedAddr) = 0;
+        virtual bool mappedPrgWrite(uint16_t addr,  uint32_t &mappedAddr, uint8_t data) = 0;
 
         // Communication with PPU Bus
-        virtual bool mapperPpuRead(uint16_t addr, uint32_t &mappedAddr) = 0;
-        virtual bool mapperPpuWrite(uint16_t addr,  uint32_t &mappedAddr) = 0;
+        virtual bool mappedChrRead(uint16_t addr, uint32_t &mappedAddr) = 0;
+        virtual bool mappedChrWrite(uint16_t addr,  uint32_t &mappedAddr) = 0;
 
         virtual void reset() = 0;
 

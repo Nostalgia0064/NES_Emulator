@@ -9,12 +9,12 @@ class Mapper000 : public Mapper
     
     public:
         // Communication with Bus
-        bool mapperCpuRead(uint16_t addr, uint32_t &mappedAddr) override;
-        bool mapperCpuWrite(uint16_t addr,  uint32_t &mappedAddr, uint8_t data = 0) override;
+        bool mappedPrgRead(uint16_t addr, uint32_t &mappedAddr) override;
+        bool mappedPrgWrite(uint16_t addr,  uint32_t &mappedAddr, uint8_t data = 0) override;
 
         // Communication with PPU Bus
-        bool mapperPpuRead(uint16_t addr, uint32_t &mappedAddr) override;
-        bool mapperPpuWrite(uint16_t addr,  uint32_t &mappedAddr) override;
+        bool mappedChrRead(uint16_t addr, uint32_t &mappedAddr) override;
+        bool mappedChrWrite(uint16_t addr,  uint32_t &mappedAddr) override;
 
         void reset() override;
     

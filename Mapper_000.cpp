@@ -2,17 +2,25 @@
 #include "Mapper_000.h"
 
 
-Mapper000::Mapper000(uint8_t prgBanks, uint8_t chrBanks) : Mapper(prgBanks, chrBanks){}
-Mapper000::~Mapper000(){}
+Mapper000::Mapper000(uint8_t prgBanks, uint8_t chrBanks) : Mapper(prgBanks, chrBanks)
+{
 
-void Mapper000::reset(){}
+}
 
+Mapper000::~Mapper000()
+{
 
-bool Mapper000::mapperCpuRead(uint16_t addr, uint32_t &mappedAddr)
+}
+
+void Mapper000::reset()
+{
+
+}
+
+bool Mapper000::mappedPrgRead(uint16_t addr, uint32_t &mappedAddr)
 {
     if (addr >= 0x8000 && addr <= 0xFFFF)
 	{
-		//mappedAddr = addr & (nPRGBanks > 1 ? 0x7FFF : 0x3FFF);
 		if (nPRGBanks > 1)
 		{
 			mappedAddr = addr & 0x7FFF;
@@ -27,11 +35,11 @@ bool Mapper000::mapperCpuRead(uint16_t addr, uint32_t &mappedAddr)
 	return false;
 }
 
-bool Mapper000::mapperCpuWrite(uint16_t addr, uint32_t &mappedAddr, uint8_t data)
+bool Mapper000::mappedPrgWrite(uint16_t addr, uint32_t &mappedAddr, uint8_t data)
 {
 	if (addr >= 0x8000 && addr <= 0xFFFF)
 	{
-		//mappedAddr = addr & (nPRGBanks > 1 ? 0x7FFF : 0x3FFF);
+		// Can only have 1 or 2 banks
 		if (nPRGBanks > 1)
 		{
 			mappedAddr = addr & 0x7FFF;
@@ -46,9 +54,9 @@ bool Mapper000::mapperCpuWrite(uint16_t addr, uint32_t &mappedAddr, uint8_t data
 	return false;
 }
 
-bool Mapper000::mapperPpuRead(uint16_t addr, uint32_t &mappedAddr)
+bool Mapper000::mappedChrRead(uint16_t addr, uint32_t &mappedAddr)
 {
-	// no mapping required for PPU
+	// Maps to the Pattern Tables in ROM
 	if (addr >= 0x0000 && addr <= 0x1FFF)
 	{
 		mappedAddr = addr;
@@ -58,17 +66,7 @@ bool Mapper000::mapperPpuRead(uint16_t addr, uint32_t &mappedAddr)
 	return false;
 }
 
-bool Mapper000::mapperPpuWrite(uint16_t addr, uint32_t &mappedAddr)
+bool Mapper000::mappedChrWrite(uint16_t addr, uint32_t &mappedAddr)
 {
-	if (addr >= 0x0000 && addr <= 0x1FFF)
-	{
-		if (nCHRBanks == 0)
-		{
-			// Treat as RAM
-			mappedAddr = addr;
-			return true;
-		};
-	};
-
 	return false;
 }

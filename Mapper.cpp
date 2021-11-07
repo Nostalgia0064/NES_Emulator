@@ -9,6 +9,12 @@ Mapper::Mapper(uint8_t PRG_size, uint8_t CHR_size)
 	reset();
 }
 
-Mapper::~Mapper(){}
+Mapper::~Mapper()
+{
 
-void Mapper::reset(){}
+}
+
+void Mapper::reset()
+{
+
+}

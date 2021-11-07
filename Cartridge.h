@@ -19,13 +19,13 @@ class Cartridge
         Cartridge(const std::string &FileName);
         ~Cartridge();
 
-        // Communication with Bus
-        bool cpuRead(uint16_t addr, uint8_t &data);
-        bool cpuWrite(uint16_t addr,  uint8_t data);
+        // Cartridge Address Space on CPU Memory Map
+        void prgRead(uint16_t addr, uint8_t &data);
+        void prgWrite(uint16_t addr,  uint8_t data);
 
-        // Communication with PPU Bus
-        bool ppuRead(uint16_t addr, uint8_t &data);
-        bool ppuWrite(uint16_t addr,  uint8_t data);
+        // Cartridge Mapping Override on PPU
+        bool chrRead(uint16_t addr, uint8_t &data);
+        bool chrWrite(uint16_t addr,  uint8_t data);
 
         bool ImageValid();
         void reset();
@@ -39,13 +39,33 @@ class Cartridge
             
         } mirror = HORIZONTAL;
 
+        enum FileFormat
+        {
+            iNES,
+            NES20,    
+        };
+
         bool imageValid;
+
+        struct FileHeader
+        {
+            char constant[4];
+            uint8_t prg_rom_chunks;
+            uint8_t chr_rom_chunks;
+            uint8_t mapper;
+            uint8_t mapper2_0;
+            uint8_t prg_ram_size;
+            uint8_t TV_system;
+            uint8_t prg_ram_pres;
+            char padding[5];
+        }; 
+        FileHeader header;
 
     private:
         uint8_t nMapperID = 0;
 	    uint8_t nPRGBanks;
 	    uint8_t nCHRBanks;
-        uint8_t file_format;
+        FileFormat file_format;
 
         std::shared_ptr<Mapper> pMapper;
         std::vector<uint8_t> PRG_Memory;
