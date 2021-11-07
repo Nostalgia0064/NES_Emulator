@@ -10,7 +10,7 @@
 #include <cstring>
 
 #include "Cartridge.h"
-//#include "MARSengine.h"
+
 
 class Ppu
 {
@@ -24,7 +24,6 @@ class Ppu
         void connectCartridge(const std::shared_ptr<Cartridge> &cartridge);
 
 
-    public:
         // ---------------------------- Memory-mapped registers (CPU) ---------------------------- //
         // PPU Registers
         struct MappedRegisters
@@ -44,48 +43,48 @@ class Ppu
         };
         MappedRegisters r;
 
-
-            // PPU Bit Operations
-            enum ControllerFlags
-            {
-                n = (1 << 0),               // nametable select (n)
-                N = (1 << 1),               // nametable select (N)
-                I = (1 << 2),               // increment mode (I)  
-                S = (1 << 3),               // sprite tile select (S)
-                B = (1 << 4),               // background tile select (B)
-                H = (1 << 5),               // sprite height (H)
-                P = (1 << 6),               // PPU master/slave (P)
-                V = (1 << 7)                // NMI enable (V)
-            };
-            enum MaskBits
-            {
-                G = (1 << 0),               // greyscale (G)
-                m = (1 << 1),               // background left column enable (m)
-                M = (1 << 2),               // sprite left column enable (M)
-                b = (1 << 3),               // Background enable (b)
-                s = (1 << 4),               // Sprite enable (s)
-                R = (1 << 5),               // Color emphasis (RGB)
-                Gr = (1 << 6),
-                Bl = (1 << 7)
-            };
-            enum StatusBits
-            {
-                U = (1 << 0) && (1 << 1) && (1 << 2) && (1 << 3) && (1 << 4),
-                O = (1 << 5),
-                SO = (1 << 6),
-                v = (1 << 7)
-            };
-        
     private:
+
+        // PPU Bit Operations
+        enum ControllerFlags
+        {
+            n = (1 << 0),               // nametable select (n)
+            N = (1 << 1),               // nametable select (N)
+            I = (1 << 2),               // increment mode (I)  
+            S = (1 << 3),               // sprite tile select (S)
+            B = (1 << 4),               // background tile select (B)
+            H = (1 << 5),               // sprite height (H)
+            P = (1 << 6),               // PPU master/slave (P)
+            V = (1 << 7)                // NMI enable (V)
+        };
+        enum MaskBits
+        {
+            G = (1 << 0),               // greyscale (G)
+            m = (1 << 1),               // background left column enable (m)
+            M = (1 << 2),               // sprite left column enable (M)
+            b = (1 << 3),               // Background enable (b)
+            s = (1 << 4),               // Sprite enable (s)
+            R = (1 << 5),               // Color emphasis (RGB)
+            Gr = (1 << 6),
+            Bl = (1 << 7)
+        };
+        enum StatusBits
+        {
+            U = (1 << 0) && (1 << 1) && (1 << 2) && (1 << 3) && (1 << 4),
+            O = (1 << 5),       // Sprite Overflow
+            SO = (1 << 6),      // Sprite 0 Hit (S)
+            v = (1 << 7)        // Vertical blank (V)
+        };
+        
         // Get & Set CPU mapped, PPU Registers Bits
-        uint8_t getControllerFlags(ControllerFlags cBits);     // Get Controller Bits
-        void setControllerFlags(ControllerFlags cBits, bool mode);   // Set or clear Controller bit values
+        inline uint8_t getControllerFlags(ControllerFlags cBits);     // Get Controller Bits
+        inline void setControllerFlags(ControllerFlags cBits, bool mode);   // Set or clear Controller bit values
 
-        uint8_t getMaskBits(MaskBits mBits);                 // Get Mask Bits
-        void setMaskBits(MaskBits, bool mode);               // Set or clear P bit values
+        inline uint8_t getMaskBits(MaskBits mBits);                 // Get Mask Bits
+        inline void setMaskBits(MaskBits, bool mode);               // Set or clear P bit values
 
-        uint8_t getStatusBits(StatusBits sBits);             // Get Status Bits
-        void setStatusBits(StatusBits, bool mode);           // Set or clear P bit values
+        inline uint8_t getStatusBits(StatusBits sBits);             // Get Status Bits
+        inline void setStatusBits(StatusBits, bool mode);           // Set or clear P bit values
     
 
     
@@ -189,7 +188,7 @@ class Ppu
             uint8_t positionX;
         };
         Sprite OAM [64];
-        uint8_t *OAMdata = (uint8_t*) OAM;
+        uint8_t *pOAM_addr = (uint8_t*) OAM;
         Sprite second_OAM[8];
         Sprite fetchedSprite;
 
@@ -199,13 +198,21 @@ class Ppu
             uint8_t hi_patternBit;
             uint16_t lo_patternAddr;
             uint16_t hi_patternAddr;
+            uint8_t counter;
+            uint8_t latch;
         };
         SpriteShifters sprShift[8];
 
-        uint8_t sprite_shift[8];
         uint8_t pOAM_counter = 0;        // Counts through elements in primary OAM (0 - 63)
         uint8_t sOAM_counter = 0;       // Counts through elements in secondary OAM (0 - 7)
-        uint8_t sprites_found = 0;      // # of sprites founf for next scanline
+        uint8_t sprites_found = 0;      // # of sprites found for next scanline
+        uint8_t spritesThisLine = 0;
+        uint8_t spr_init = 0;
+
+        bool sprZeroPossible = false;
+        bool sprZeroThisLine = false;
+
+        bool sprZeroRendering = false;
         
         enum SpriteFlip
         {
@@ -218,45 +225,40 @@ class Ppu
         // ---------------------------- PPU Functions ---------------------------- //
 
         // Read/Writes
-        inline uint8_t ppuRead(uint16_t addr);
-        inline void ppuWrite(uint16_t addr, uint8_t data);
+        uint8_t ppuRead(uint16_t addr);
+        void ppuWrite(uint16_t addr, uint8_t data);
         uint8_t cpuRead(uint16_t addr);
         void cpuWrite(uint16_t addr, uint8_t data);
 
         
         std::vector<Ppu::Pixels> getPatternTables(int plane, uint8_t pal);
-        inline uint8_t getPixelColorIndex(uint8_t &palette, uint8_t &pattern);
-        uint8_t palAddr = 0x00;
         std::vector<Ppu::RGB> getPalettes();
+        uint8_t palAddr = 0x00;
 
         Ppu::Pixels getScreenPixels();
         void setScreenPixels();
 
 
-        // PPU System Operations
-        void reset();       // reset PPU vectors
+        // System Operations
+        void tick();        
+        void reset();
+        bool frameComplete;
+        bool renderDisassembly;
 
-        // PPU Scrolling Operations
-        inline void incrementCoarseX();
-        inline void incrementY();
+        // Scrolling Operations
+        void incrementCoarseX();
+        void incrementY();
 
-        inline void resetAddressX();
-        inline void resetAddressY();
+        // Shift Register functions
+        inline void strobeShiftRegisters();
+        void updateBackgroundShiftRegisters();
 
-        // Background functions
-        void loadIntoShiftRegisters();
-        inline void iterateShiftRegisters();
+        // Fetching functions
         void fetchBackground();
+        void fetchSprites();
 
         // Sprite functions
-        void evaluateSprites();
-        void fetchSprites();
         inline bool spriteRangeCheck();
-
-        // Clocking & Render Screen
-        void render();       // One PPU Clock cycle
-        bool frameComplete;
-        //int fps;
-
-    
+        bool checkSprPriority(uint8_t bkg_pixel, uint8_t spr_pixel, bool spr_priority);
+   
 };

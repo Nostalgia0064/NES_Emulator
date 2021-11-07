@@ -25,11 +25,11 @@
 #define WIDTH 2560
 #define HEIGHT 1300
 
-#define RIGHT_L_JUSTIFIED 2000
-#define RIGHT_R_JUSTIFIED 2200
+#define RIGHT_L_JUSTIFIED 2100
+#define RIGHT_R_JUSTIFIED 2300
 
-#define LEFT_L_JUSTIFIED 20
-#define LEFT_R_JUSTIFIED 250
+#define LEFT_L_JUSTIFIED 50
+#define LEFT_R_JUSTIFIED 260
 
 class MARS
 {
@@ -45,13 +45,15 @@ class MARS
         Uint32 ticks = 0;
         Uint32 prevTick = 0;
 
-        Uint32 nesClockSpeed = 0;
-        Uint32 nesClockStart = 0;
+        Uint32 frame_start = 0;
+        Uint32 frame_end = 0;
 
         Uint32 marsSpeed = 0;
         Uint32 marsStart = 0;
 
         stringstream text_ss;
+        uint32_t* leftPlaneBuffer = nullptr;
+        uint32_t* rightPlaneBuffer = nullptr;
 
 
     public:
@@ -76,8 +78,8 @@ class MARS
         Patterns pat;
 
       
-        string selectedConsole = "NES";
-        string selectedGame = "";        
+        std::string selectedConsole = "NES";
+        std::string selectedGame = "";        
         
         struct Plane
         {
@@ -115,6 +117,8 @@ class MARS
         // Text Font & Colors
         TTF_Font *lg_font;
         TTF_Font *sm_font;
+        TTF_Font *styled_font;
+        TTF_Font *space_font;
 
         SDL_Color Red = {255, 0, 0};
         SDL_Color Green = {0, 255, 0};
@@ -141,7 +145,7 @@ class MARS
         inline void drawRam();
         inline void drawPpu();
         inline void drawSystemComponents();
-        inline void drawPixels();
+        void drawPixels();
 
         uint32_t aRGB(uint32_t R, uint32_t G, uint32_t B, uint32_t a);
 
@@ -151,29 +155,3 @@ class MARS
         void logWrite();
 
 };
-
-/*
-// Draw Framerate
-    Uint32 ticks;
-    ticks = SDL_GetTicks();
-    if ((ticks % 1000) == 0) 
-    {
-        frame_rate = 0;
-    }
-    else
-    {
-        frame_rate++;
-    }
-    std::string sFps = std::to_string(frame_rate);
-
-    const char *fpsVal = sFps.c_str();
-    surface = TTF_RenderText_Solid(lg_font, fpsVal, Gold);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 225;
-    box.y = 1110;
-    box.w = 50;
-    box.h = 50;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-*/

@@ -1,4 +1,3 @@
-// Copyright 2018, 2019, 2020, 2021 OneLoneCoder.com
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -409,7 +408,7 @@ void Cpu::nmi()
 
 
 // ---------------CPU executor & fetcher--------------------//
-uint16_t Cpu::execute()
+uint16_t Cpu::tick()
 {
     newInstruction = false;
     if(con.cycles == 0)
@@ -418,16 +417,19 @@ uint16_t Cpu::execute()
         // Read instruction from PC to perform next instruction
         con.opcode = read(reg.PC);
 
-        d.get_instruction.clear();
-        d.get_addrmode.clear();
-        d.mem_location.clear();
+        if(renderDisassembly)
+        {
+            d.get_instruction.clear();
+            d.get_addrmode.clear();
+            d.mem_location.clear();
 
-        // Log Instruction Memory Location
-        ss.str( std::string() );
-        ss.clear();
+            // Log Instruction Memory Location
+            ss.str( std::string() );
+            ss.clear();
 
-        ss << std::hex << (int) reg.PC;
-        d.mem_location = "$" + ss.str();
+            ss << std::hex << (int) reg.PC;
+            d.mem_location = "$" + ss.str();
+        };
 
         // Increment PC
         reg.PC++;   
@@ -460,55 +462,68 @@ uint16_t Cpu::execute()
 inline void Cpu::setDisassemblyLog(std::string &disassem)
 {
     //disassem = std::to_string(disCount) + ". " + disassem;
-    d.disassembly.push_front(disassem);
-    max_size = 16;
+    if(renderDisassembly)
+    {
+        d.disassembly.push_front(disassem);
+        max_size = 18;
 
-    if(disassemblySize > max_size)
-    {
-        d.disassembly.pop_back();
-    }
-    else
-    {
-        disassemblySize++;
+        if(disassemblySize > max_size)
+        {
+            d.disassembly.pop_back();
+        }
+        else
+        {
+            disassemblySize++;
+        };
+        disCount++;
+        thisDis = disassem;
     };
-    disCount++;
-    thisDis = disassem;
 
 }
 
 inline void Cpu::setDisassemblyOp(uint8_t op1, uint8_t op2, bool mult_ops)
 {
-    ss1.str( std::string() );
-    ss1.clear();
-
-    ss2.str( std::string() );
-    ss2.clear();
-
-    ss1 << std::hex << (int) op1;
-    ss2 << std::hex << (int) op2;
-
-    if(op1 == 0)
+    if(renderDisassembly)
     {
-        d.get_opcode_instruction[0] == "  ";
+        ss1.str( std::string() );
+        ss1.clear();
+
+        ss2.str( std::string() );
+        ss2.clear();
+
+        ss1 << std::hex << (int) op1;
+        ss2 << std::hex << (int) op2;
+
+        if(op1 == 0)
+        {
+            d.get_opcode_instruction[0] == "  ";
+        };
+
+        d.get_opcode_instruction[0] = ss1.str();
+
+        if(mult_ops == true)
+        {
+            d.get_opcode_instruction[1] = ss2.str();
+        }
+        else
+        {
+            d.get_opcode_instruction[1] = "  ";
+        };
     };
+}
 
-    d.get_opcode_instruction[0] = ss1.str();
-
-    if(mult_ops == true)
-    {
-        d.get_opcode_instruction[1] = ss2.str();
-    }
-    else
-    {
-        d.get_opcode_instruction[1] = "  ";
-    };
+uint8_t Cpu::transferDMA(uint8_t &addr_offset, uint8_t &dma_addr)
+{   
+    uint8_t data = 0x00;
+    data = read(addr_offset << 8 | dma_addr);
+    return data;
 }
 
 
 inline uint8_t Cpu::fetchInstruction()
 {   
     // If implied Instruction
-    if(!(op_lookup[con.opcode].op_addressmode == &Cpu::Addr_IMP) || !(op_lookup[con.opcode].op_addressmode == &Cpu::Addr_ACC)) 
+    if(!(op_lookup[con.opcode].op_addressmode == &Cpu::Addr_IMP) && !(op_lookup[con.opcode].op_addressmode == &Cpu::Addr_ACC)) 
     {
         con.fetched = read(con.mem_addr);
     };
@@ -522,18 +537,24 @@ uint8_t Cpu::Addr_IMP()
 {
     con.fetched = reg.A;
 
-    disassembly_line = d.mem_location + ": " + d.get_instruction + " [" + d.get_addrmode + "]";
-    setDisassemblyOp(0, 0, false);
-    setDisassemblyLog(disassembly_line);
+    if(renderDisassembly)
+    {
+        disassembly_line = d.mem_location + ": " + d.get_instruction + " [" + d.get_addrmode + "]";
+        setDisassemblyOp(0, 0, false);
+        setDisassemblyLog(disassembly_line);
+    };
     return 0;
 }
 // Accumulator
 uint8_t Cpu::Addr_ACC()
 {
     con.fetched = reg.A;
-    setDisassemblyOp(con.fetched, 0, false);
-    disassembly_line = d.mem_location + ": " + d.get_instruction + " [" + d.get_addrmode + "]";
-    setDisassemblyLog(disassembly_line);
+    if(renderDisassembly)
+    {
+        setDisassemblyOp(con.fetched, 0, false);
+        disassembly_line = d.mem_location + ": " + d.get_instruction + " [" + d.get_addrmode + "]";
+        setDisassemblyLog(disassembly_line);
+    };
 
     return 0;
 }
@@ -541,10 +562,12 @@ uint8_t Cpu::Addr_ACC()
 uint8_t Cpu::Addr_IMM()
 {   
     con.mem_addr = reg.PC++;
-
-    setDisassemblyOp(read(con.mem_addr), 0, false);
-    disassembly_line = d.mem_location + ": " + d.get_instruction + " #$" + d.get_opcode_instruction[0] + " [" + d.get_addrmode + "]";
-    setDisassemblyLog(disassembly_line);
+    if(renderDisassembly)
+    {
+        setDisassemblyOp(read(con.mem_addr), 0, false);
+        disassembly_line = d.mem_location + ": " + d.get_instruction + " #$" + d.get_opcode_instruction[0] + " [" + d.get_addrmode + "]";
+        setDisassemblyLog(disassembly_line);
+    };
 
     return 0;
 }
@@ -556,9 +579,12 @@ uint8_t Cpu::Addr_ZP0()
 
     con.mem_addr &= 0x00FF;
 
-    setDisassemblyOp( (uint8_t)(con.mem_addr & 0x00FF), 0, false);
-    disassembly_line = d.mem_location + ": " + d.get_instruction + " $" + d.get_opcode_instruction[0] + " [" + d.get_addrmode + "]";
-    setDisassemblyLog(disassembly_line);
+    if(renderDisassembly)
+    {
+        setDisassemblyOp( (uint8_t)(con.mem_addr & 0x00FF), 0, false);
+        disassembly_line = d.mem_location + ": " + d.get_instruction + " $" + d.get_opcode_instruction[0] + " [" + d.get_addrmode + "]";
+        setDisassemblyLog(disassembly_line);
+    };
 
     return 0;
 }
@@ -570,9 +596,12 @@ uint8_t Cpu::Addr_ZPX()
 
     con.mem_addr &= 0x00FF;
 
-    setDisassemblyOp( (uint8_t)(con.mem_addr & 0x00FF), 0, false);
-    disassembly_line = d.mem_location + ": " + d.get_instruction + " $" + d.get_opcode_instruction[0] + " [" + d.get_addrmode + "]";
-    setDisassemblyLog(disassembly_line);
+    if(renderDisassembly)
+    {
+        setDisassemblyOp( (uint8_t)(con.mem_addr & 0x00FF), 0, false);
+        disassembly_line = d.mem_location + ": " + d.get_instruction + " $" + d.get_opcode_instruction[0] + " [" + d.get_addrmode + "]";
+        setDisassemblyLog(disassembly_line);
+    };
 
     return 0;
 } 
@@ -584,10 +613,12 @@ uint8_t Cpu::Addr_ZPY()
 
     con.mem_addr &= 0x00FF;
 
-    setDisassemblyOp( (uint8_t)(con.mem_addr & 0x00FF), 0, false);
-    disassembly_line = d.mem_location + ": " + d.get_instruction + " $" + d.get_opcode_instruction[0] + " [" + d.get_addrmode + "]";
-    setDisassemblyLog(disassembly_line);
-    
+    if(renderDisassembly)
+    {
+        setDisassemblyOp( (uint8_t)(con.mem_addr & 0x00FF), 0, false);
+        disassembly_line = d.mem_location + ": " + d.get_instruction + " $" + d.get_opcode_instruction[0] + " [" + d.get_addrmode + "]";
+        setDisassemblyLog(disassembly_line);
+    };
     return 0;
 }
 // Relative
@@ -601,20 +632,21 @@ uint8_t Cpu::Addr_REL()
         con.rel_addr |= 0xFF00;
     };
 
-    uint16_t addr = con.rel_addr + reg.PC;
-    uint8_t lo = (addr & 0x00FF);
-    uint8_t hi = ((addr >> 8) & 0x00FF);
+    if(renderDisassembly)
+    {
+        uint16_t addr = con.rel_addr + reg.PC;
+        uint8_t lo = (addr & 0x00FF);
+        uint8_t hi = ((addr >> 8) & 0x00FF);
 
-    ss1.str( std::string() );
-    ss1.clear();
-    ss1 << std::hex << (int) hi; 
-    ss1 << std::hex << (int) lo;
-    std::string r_addr = ss.str();
+        ss1.str( std::string() );
+        ss1.clear();
+        ss1 << std::hex << (int) hi; 
+        ss1 << std::hex << (int) lo;
 
-    setDisassemblyOp( (uint8_t)(con.rel_addr), 0, false);
-    disassembly_line = d.mem_location + ": " + d.get_instruction + " $" + r_addr + " [" + d.get_addrmode + "]";
-    setDisassemblyLog(disassembly_line);
-
+        setDisassemblyOp( (uint8_t)(con.rel_addr), 0, false);
+        disassembly_line = d.mem_location + ": " + d.get_instruction + " $" + ss.str() + " [" + d.get_addrmode + "]";
+        setDisassemblyLog(disassembly_line);
+    };
 
     return 0;
 }
@@ -629,12 +661,15 @@ uint8_t Cpu::Addr_ABS()
 
     con.mem_addr = (high_byte << 8) | low_byte;
 
-    uint8_t lo = (uint8_t)((low_byte & 0x00FF));
-    uint8_t hi = (uint8_t)(high_byte & 0x00FF);
+    if(renderDisassembly)
+    {
+        uint8_t lo = (uint8_t)((low_byte & 0x00FF));
+        uint8_t hi = (uint8_t)(high_byte & 0x00FF);
 
-    setDisassemblyOp(lo, hi, true);
-    disassembly_line = d.mem_location + ": " + d.get_instruction + " $" + d.get_opcode_instruction[1] + d.get_opcode_instruction[0] + " [" + d.get_addrmode + "]";
-    setDisassemblyLog(disassembly_line);
+        setDisassemblyOp(lo, hi, true);
+        disassembly_line = d.mem_location + ": " + d.get_instruction + " $" + d.get_opcode_instruction[1] + d.get_opcode_instruction[0] + " [" + d.get_addrmode + "]";
+        setDisassemblyLog(disassembly_line);
+    };
 
     return 0;
 }
@@ -1169,20 +1204,19 @@ uint8_t Cpu::LSR()
 {
     fetchInstruction();
     setStatusRegister(C, (con.fetched & 0x0001));
-    con.temp = con.fetched >> 1;
+
+    con.fetched = con.fetched >> 1;
+    con.temp = (uint16_t) con.fetched & 0x00FF;
 
     setStatusRegister(Z, (con.temp & 0x00FF) == 0x00);
     setStatusRegister(N, (con.temp & N));
 
-    if((op_lookup[con.opcode].op_addressmode == &Cpu::Addr_ACC) || (op_lookup[con.opcode].op_addressmode == &Cpu::Addr_IMP))
-    {
-        reg.A = con.temp & 0x00FF;
-    }
-    else
+    if(!(op_lookup[con.opcode].op_addressmode == &Cpu::Addr_ACC) && (!(op_lookup[con.opcode].op_addressmode == &Cpu::Addr_IMP)))
     {
         write(con.mem_addr, (con.temp & 0x00FF));
-    };
-
+        return 0;
+    }
+    reg.A = con.fetched;
     return 0;
 }
 

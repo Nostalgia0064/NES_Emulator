@@ -29,6 +29,13 @@ class Bus
         bool controllerPoll = false;
         uint8_t userInput = 0;             // User input for Controller Polls
 
+        bool DMA_access = false;
+        bool continue_transfer = false;
+        uint8_t DMA_transferData;
+        uint8_t DMA_addr;
+        uint8_t DMA_offset = 0x00;
+        int DMA_cycles;
+
 
         // Bus read & write
         void write(uint16_t addr, uint8_t data);
@@ -41,7 +48,7 @@ class Bus
         void setController(uint8_t bits, uint8_t num);
         uint8_t getController(uint8_t num);
 
-        long NES_SystemClock = 0;
+        unsigned long NES_SystemClock = 0;
 
         // Debuging operators
         uint8_t bus_data = 0x00;

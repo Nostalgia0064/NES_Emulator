@@ -9,15 +9,12 @@ MARS::~MARS(){}
 
 void MARS::keyboardInput(SDL_Event &event)
 {
-    //SDL_Delay(500);
     switch(event.key.keysym.sym)
     {
         case SDLK_SPACE:
             if(debMode == true)
             {
                 nes.systemClock();
-                //logWrite();
-
                 drawScreen();
 
             };
@@ -77,7 +74,6 @@ void MARS::keyboardInput(SDL_Event &event)
 
         // Display RAM Contents
         case SDLK_PAGEDOWN:
-            SDL_RenderClear(rend_debug);
             drawRam();
             break;
         
@@ -139,19 +135,25 @@ void MARS::getControllerState()
     };
     bits &= 0xFF;
     nes.setController(bits, 0);
+    nes.setController(bits, 1);
 }
 
 
 inline void MARS::drawCpu()
 {
+    X = RIGHT_L_JUSTIFIED;
+    Y = 600;
+    W = 100;
+    H = 35;
+    
     // PC Text
     const char *pcText = "PC:";
-    surface = TTF_RenderText_Solid(lg_font, pcText, Blue);
+    surface = TTF_RenderText_Solid(styled_font, pcText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = RIGHT_L_JUSTIFIED;
-    box.y = 650;
-    box.w = 100;
-    box.h = 35;
+    box.x = X;
+    box.y = Y;
+    box.w = W;
+    box.h = H;
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
@@ -161,10 +163,10 @@ inline void MARS::drawCpu()
     text_ss.clear();
     text_ss << std::hex << nes.cpu.reg.PC;
     const char *pc = text_ss.str().c_str();
-    surface = TTF_RenderText_Solid(sm_font, pc, White);
+    surface = TTF_RenderText_Solid(lg_font, pc, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_R_JUSTIFIED;
-    box.y = 650;
+    box.y = 600;
     box.w = 150;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -173,10 +175,10 @@ inline void MARS::drawCpu()
 
     // Accumulator Text
     const char *aText = "A:";
-    surface = TTF_RenderText_Solid(lg_font, aText, Blue);
+    surface = TTF_RenderText_Solid(styled_font, aText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_L_JUSTIFIED;
-    box.y = 700;
+    box.y = 650;
     box.w = 50;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -188,10 +190,10 @@ inline void MARS::drawCpu()
     text_ss.clear();
     text_ss << std::hex << (int)nes.cpu.reg.A;
     const char *a = text_ss.str().c_str();
-    surface = TTF_RenderText_Solid(sm_font, a, White);
+    surface = TTF_RenderText_Solid(lg_font, a, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_R_JUSTIFIED;
-    box.y = 700;
+    box.y = 650;
     box.w = 75;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -201,10 +203,10 @@ inline void MARS::drawCpu()
     // X Register Text
     //std::string s_x = "X:";
     const char *xText = "X:";
-    surface = TTF_RenderText_Solid(lg_font, xText, Blue);
+    surface = TTF_RenderText_Solid(styled_font, xText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_L_JUSTIFIED;
-    box.y = 750;
+    box.y = 700;
     box.w = 50;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -216,10 +218,10 @@ inline void MARS::drawCpu()
     text_ss.clear();
     text_ss << std::hex << (int)nes.cpu.reg.X;
     const char *x = text_ss.str().c_str();
-    surface = TTF_RenderText_Solid(sm_font, x, White);
+    surface = TTF_RenderText_Solid(lg_font, x, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_R_JUSTIFIED;
-    box.y = 750;
+    box.y = 700;
     box.w = 75;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -230,10 +232,10 @@ inline void MARS::drawCpu()
 
     // Y Register Text
     const char *yText = "Y:";
-    surface = TTF_RenderText_Solid(lg_font, yText, Blue);
+    surface = TTF_RenderText_Solid(styled_font, yText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_L_JUSTIFIED;
-    box.y = 800;
+    box.y = 750;
     box.w = 50;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -245,10 +247,10 @@ inline void MARS::drawCpu()
     text_ss.clear();
     text_ss << std::hex << (int)nes.cpu.reg.Y;
     const char *y = text_ss.str().c_str();
-    surface = TTF_RenderText_Solid(sm_font, y, White);
+    surface = TTF_RenderText_Solid(lg_font, y, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_R_JUSTIFIED;
-    box.y = 800;
+    box.y = 750;
     box.w = 75;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -258,10 +260,10 @@ inline void MARS::drawCpu()
 
     // Stack Text
     const char *stackText = "STACK:";
-    surface = TTF_RenderText_Solid(lg_font, stackText, Blue);
+    surface = TTF_RenderText_Solid(styled_font, stackText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_L_JUSTIFIED;
-    box.y = 850;
+    box.y = 800;
     box.w = 125;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -273,10 +275,10 @@ inline void MARS::drawCpu()
     text_ss.clear();
     text_ss << std::hex << (int)nes.cpu.reg.S;
     const char *stack = text_ss.str().c_str();
-    surface = TTF_RenderText_Solid(sm_font, stack, White);
+    surface = TTF_RenderText_Solid(lg_font, stack, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_R_JUSTIFIED;
-    box.y = 850;
+    box.y = 800;
     box.w = 75;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -287,10 +289,10 @@ inline void MARS::drawCpu()
 
     // Status Flag Text
     const char *statusText = "STATUS:";
-    surface = TTF_RenderText_Solid(lg_font, statusText, Blue);
+    surface = TTF_RenderText_Solid(styled_font, statusText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_L_JUSTIFIED;
-    box.y = 900;
+    box.y = 850;
     box.w = 125;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -300,18 +302,21 @@ inline void MARS::drawCpu()
     // Status Flag Values
     std::bitset<8> status = nes.cpu.reg.P;
     X = RIGHT_R_JUSTIFIED;
-    Y = 900;
+    Y = 850;
     W = 25;
     H = 35;
     
+    int j = 7;
     for(int i = 0; i <= 8; i++)
     {
         std::string s_p = status.to_string();
-        char bit = s_p[i];
-        s_p = bit;
-        const char *statusVal = s_p.c_str();
+        std::string s_p_name = "CZIDBUVN";
+        char name_bit = s_p_name[j];
+        s_p = s_p[i];
+        s_p_name = name_bit;
+        const char *statusVal = s_p_name.c_str();
         
-        if(s_p== "0")
+        if(s_p == "0")
         {
             surface = TTF_RenderText_Solid(sm_font, statusVal, Red);
         }
@@ -325,11 +330,12 @@ inline void MARS::drawCpu()
         box.w = W;
         box.h = H;
         X += 25;
+        j--;
         SDL_RenderCopy(renderer, texture, NULL, &box);
         SDL_FreeSurface(surface);
         SDL_DestroyTexture(texture);
     };
-
+    /*
     text_ss.str( std::string() );
     text_ss.clear();
     text_ss << std::hex << (int)nes.cpu.reg.P;
@@ -344,49 +350,185 @@ inline void MARS::drawCpu()
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
-
+    */
     // Render CPU Elements
     //SDL_RenderPresent(renderer);
 }
 
 inline void MARS::drawRam()
 {
-    X = 5;
-    Y = 128;
-    W = 25;
-    H = 20;
-
     // Get RAM contents from NES
-    int ram_size = 2048;
-    std::string ram;
+    SDL_SetRenderDrawColor(rend_debug, 20, 20, 20, 255);
+    SDL_RenderClear(rend_debug);
+
+    // Secondary OAM Text
+    const char *sOamText = "Secondary OAM:";
+    surface = TTF_RenderText_Solid(lg_font, sOamText, Blue);
+    texture = SDL_CreateTextureFromSurface(rend_debug, surface);
+    box.x = 5;
+    box.y = 25;
+    box.w = 125;
+    box.h = 25;
+    SDL_RenderCopy(rend_debug, texture, NULL, &box);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+
+    int ram_size = 8;
+    std::stringstream ss;
+    X = 5;
+    Y = 80;
+    W = 130;
+    H = 20;
 
     // Place RAM into String
     for (int i = 0; i < ram_size; i++)
     {
-        ram = std::to_string(nes.cpuRam[i]);
-        const char *ramVal = ram.c_str();
+        //auto ram = nes.ppu.tbl.name[0][i];
+        ss.str( std::string() );
+        ss.clear();
+
+        ss << std::hex << (int) nes.ppu.second_OAM[i].positionY;
+        ss << "  ";
+        ss << std::hex << (int) nes.ppu.second_OAM[i].tileIndex;
+        ss << "  ";
+        ss << std::hex << (int) nes.ppu.second_OAM[i].attributes;
+        ss << "  ";
+        ss << std::hex << (int) nes.ppu.second_OAM[i].positionX;
+        ss << "  ";
+        const char *sOamVal = ss.str().c_str();
 
         // Render RAM Contents
-        surface = TTF_RenderText_Solid(sm_font, ramVal, White);
+        surface = TTF_RenderText_Solid(sm_font, sOamVal, White);
         texture = SDL_CreateTextureFromSurface(rend_debug, surface);
         box.x = X;
         box.y = Y;
         box.w = W;
         box.h = H;
-        
-        X += 28;
 
         // Reset Y coordinate 
-        if(i % 64 == 0)
-        {
-            X = 5;
-            Y += 20;
-        }
+        X = 5;
+        Y += 25;
         SDL_RenderCopy(rend_debug, texture, NULL, &box);
 
         SDL_FreeSurface(surface);
         SDL_DestroyTexture(texture);
-        ram.clear();
+    };
+
+    // Primary OAM Data
+    const char *pOamText = "Primary OAM Addresses:";
+    surface = TTF_RenderText_Solid(lg_font, pOamText, Blue);
+    texture = SDL_CreateTextureFromSurface(rend_debug, surface);
+    box.x = 180;
+    box.y = 25;
+    box.w = 140;
+    box.h = 25;
+    SDL_RenderCopy(rend_debug, texture, NULL, &box);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+
+    ram_size = 64;
+    X = 180;
+    Y = 55;
+    W = 130;
+    H = 20;
+
+    // Place RAM into String
+    for (int i = 0; i < ram_size; i++)
+    {
+        //auto ram = nes.ppu.tbl.name[0][i];
+        ss.str( std::string() );
+        ss.clear();
+
+        ss << std::hex << (int) nes.ppu.OAM[i].positionY;
+        ss << "  ";
+        ss << std::hex << (int) nes.ppu.OAM[i].tileIndex;
+        ss << "  ";
+        ss << std::hex << (int) nes.ppu.OAM[i].attributes;
+        ss << "  ";
+        ss << std::hex << (int) nes.ppu.OAM[i].positionX;
+        ss << "  ";
+        const char *pOamVal = ss.str().c_str();
+
+        // Reset Y Coordinate
+        if ((i % 8) == 0)
+        {
+            X = 180;
+            Y += 25;
+        };
+
+        // Render RAM Contents
+        surface = TTF_RenderText_Solid(sm_font, pOamVal, White);
+        texture = SDL_CreateTextureFromSurface(rend_debug, surface);
+        box.x = X;
+        box.y = Y;
+        box.w = W;
+        box.h = H;
+
+
+        X += 160;
+        SDL_RenderCopy(rend_debug, texture, NULL, &box);
+
+        SDL_FreeSurface(surface);
+        SDL_DestroyTexture(texture);
+    };
+
+    Y += 80;
+    // Sprite Shift Register Data
+    const char *sprshiftText = "Sprite Shift Registers:";
+    surface = TTF_RenderText_Solid(lg_font, sprshiftText, Blue);
+    texture = SDL_CreateTextureFromSurface(rend_debug, surface);
+    box.x = 180;
+    box.y = Y;
+    box.w = 140;
+    box.h = 25;
+    SDL_RenderCopy(rend_debug, texture, NULL, &box);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+
+    ram_size = 8;
+    X = 180;
+    Y += 30;
+    W = 130;
+    H = 20;
+
+    // Place RAM into String
+    for (int i = 0; i < ram_size; i++)
+    {
+        //auto ram = nes.ppu.tbl.name[0][i];
+        ss.str( std::string() );
+        ss.clear();
+
+        ss << std::hex << (int) nes.ppu.sprShift[i].lo_patternBit;
+        ss << "  ";
+        ss << std::hex << (int) nes.ppu.sprShift[i].hi_patternBit;
+        ss << "  ";
+        ss << std::hex << (int) nes.ppu.sprShift[i].lo_patternAddr;
+        ss << "  ";
+        ss << std::hex << (int) nes.ppu.sprShift[i].hi_patternAddr;
+        ss << "  ";
+        const char *sprshiftVal = ss.str().c_str();
+
+        // Reset Y Coordinate
+        if ((i % 8) == 0)
+        {
+            X = 180;
+            Y += 25;
+        };
+
+        // Render RAM Contents
+        surface = TTF_RenderText_Solid(sm_font, sprshiftVal, White);
+        texture = SDL_CreateTextureFromSurface(rend_debug, surface);
+        box.x = X;
+        box.y = Y;
+        box.w = W;
+        box.h = H;
+
+
+        X += 160;
+        SDL_RenderCopy(rend_debug, texture, NULL, &box);
+
+        SDL_FreeSurface(surface);
+        SDL_DestroyTexture(texture);
     };
     SDL_RenderPresent(rend_debug);
 
@@ -395,204 +537,108 @@ inline void MARS::drawRam()
 
 inline void MARS::drawPpu()
 {
-    const char *cText = "Controller: ";
-    const char *mText = "Mask: ";
-    const char *sText = "Status: ";
-
-    std::bitset<8> mask = nes.ppu.r.mask;
-    std::bitset<8> status = nes.ppu.r.status;
+    const char *cText = "CONTROLLER: ";
+    const char *mText = "MASK: ";
+    const char *sText = "STATUS: ";
 
 
     // Controller Register Text & Values
-    surface = TTF_RenderText_Solid(lg_font, cText, Blue);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = RIGHT_L_JUSTIFIED;
-    box.y = 300;
-    box.w = 175;
-    box.h = 35;
-
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-    X = RIGHT_R_JUSTIFIED;
-    Y = 300;
-    W = 25;
-    H = 35;
-    
-    std::bitset<8> controller = nes.ppu.r.controller;
-    //std::bitset<8> controller = 0x0F;
-    for(int i = 0; i <= 8; i++)
-    {
-        std::string s_controller = controller.to_string();
-        char bit = s_controller[i];
-        s_controller = bit;
-        const char *controllerVal = s_controller.c_str();
-        
-        if(s_controller == "0")
-        {
-            surface = TTF_RenderText_Solid(sm_font, controllerVal, Red);
-        }
-        else
-        {
-            surface = TTF_RenderText_Solid(sm_font, controllerVal, Green);
-        }
-        texture = SDL_CreateTextureFromSurface(renderer, surface);
-        box.x = X;
-        box.y = Y;
-        box.w = W;
-        box.h = H;
-        X += 25;
-
-        SDL_RenderCopy(renderer, texture, NULL, &box);
-        SDL_FreeSurface(surface);
-        SDL_DestroyTexture(texture);
-    };
-
-
-
-    // Mask Register Text & Values
-    surface = TTF_RenderText_Solid(lg_font, mText, Blue);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = RIGHT_L_JUSTIFIED;
-    box.y = 350;
-    box.w = 175;
-    box.h = 35;
-
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-    X = RIGHT_R_JUSTIFIED;
-    Y = 350;
-    W = 25;
-    H = 35;
-
-    for(int i = 0; i <= 8; i++)
-    {
-        std::string s_mask = mask.to_string();
-        char bit = s_mask[i];
-        s_mask = bit;
-        const char *maskVal = s_mask.c_str();
-        
-        if(s_mask == "0")
-        {
-            surface = TTF_RenderText_Solid(sm_font, maskVal, Red);
-        }
-        else
-        {
-            surface = TTF_RenderText_Solid(sm_font, maskVal, Green);
-        }
-        texture = SDL_CreateTextureFromSurface(renderer, surface);
-        box.x = X;
-        box.y = Y;
-        box.w = W;
-        box.h = H;
-        X += 25;
-
-        SDL_RenderCopy(renderer, texture, NULL, &box);
-        SDL_FreeSurface(surface);
-        SDL_DestroyTexture(texture);
-    };
-
-    // Status Register
-    surface = TTF_RenderText_Solid(lg_font, sText, Blue);
+    surface = TTF_RenderText_Solid(styled_font, cText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_L_JUSTIFIED;
     box.y = 400;
     box.w = 175;
     box.h = 35;
+    SDL_RenderCopy(renderer, texture, NULL, &box);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+
+
+    X = RIGHT_R_JUSTIFIED;
+    Y = 400;
+    W = 75;
+    H = 35;
+
+    text_ss.str( std::string() );
+    text_ss.clear();
+    text_ss << std::hex << (int) nes.ppu.r.controller;;
+    const char *controllerVal = text_ss.str().c_str();
+    surface = TTF_RenderText_Solid(lg_font, controllerVal, White);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    box.x = RIGHT_R_JUSTIFIED;
+    box.y = Y;
+    box.w = W;
+    box.h = H;
+    SDL_RenderCopy(renderer, texture, NULL, &box);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+    X += 25;
+
+
+    // Mask Register Text & Values
+    surface = TTF_RenderText_Solid(styled_font, mText, Red);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    box.x = RIGHT_L_JUSTIFIED;
+    box.y = 450;
+    box.w = 175;
+    box.h = 35;
+
+    SDL_RenderCopy(renderer, texture, NULL, &box);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+
+    X = RIGHT_R_JUSTIFIED;
+    Y = 450;
+    W = 75;
+    H = 35;
+
+    text_ss.str( std::string() );
+    text_ss.clear();
+    text_ss << std::hex << (int) nes.ppu.r.mask;;
+    const char *maskVal = text_ss.str().c_str();
+    surface = TTF_RenderText_Solid(lg_font, maskVal, White);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    box.x = X;
+    box.y = Y;
+    box.w = W;
+    box.h = H;
+    SDL_RenderCopy(renderer, texture, NULL, &box);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+    X += 25;
+
+
+
+    // Status Register
+    surface = TTF_RenderText_Solid(styled_font, sText, Red);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    box.x = RIGHT_L_JUSTIFIED;
+    box.y = 500;
+    box.w = 175;
+    box.h = 35;
 
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
     
     X = RIGHT_R_JUSTIFIED;
-    Y = 400;
-    W = 25;
+    Y = 500;
+    W = 75;
     H = 35;
 
-    for (int i = 0; i <= 8; i++)
-    {
-        std::string s_status = status.to_string();
-        char bit = s_status[i];
-        s_status = bit;
-        const char *statusVal = s_status.c_str();
-
-        if (s_status == "0")
-        {
-            surface = TTF_RenderText_Solid(sm_font, statusVal, Red);
-        }
-        else
-        {
-            surface = TTF_RenderText_Solid(sm_font, statusVal, Green);
-        }
-
-        texture = SDL_CreateTextureFromSurface(renderer, surface);
-        box.x = X;
-        box.y = Y;
-        box.w = W;
-        box.h = H;
-        X += 25;
-
-        SDL_RenderCopy(renderer, texture, NULL, &box);
-        SDL_FreeSurface(surface);
-        SDL_DestroyTexture(texture);
-    }
-    /*
-
-    // PPU Scanline Text
-    const char *scanlineText = "Scanline: ";
-    surface = TTF_RenderText_Solid(lg_font, scanlineText, Blue);
+    text_ss.str( std::string() );
+    text_ss.clear();
+    text_ss << std::hex << (int) nes.ppu.r.status;;
+    const char *statusVal = text_ss.str().c_str();
+    surface = TTF_RenderText_Solid(lg_font, statusVal, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = RIGHT_L_JUSTIFIED;
-    box.y = 450;
-    box.w = 150;
-    box.h = 35;
+    box.x = X;
+    box.y = Y;
+    box.w = W;
+    box.h = H;
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
-
-    // PPU Scanline Value
-    std::string s_scanline = to_string(nes.ppu.scanLine);
-    const char *scanline = s_scanline.c_str();
-    surface = TTF_RenderText_Solid(lg_font, scanline, Blue);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = RIGHT_R_JUSTIFIED;
-    box.y = 450;
-    box.w = 100;
-    box.h = 35;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-
-    // PPU Cycle Text
-    const char *cycleText = "Cycle: ";
-    surface = TTF_RenderText_Solid(lg_font, cycleText, Blue);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = RIGHT_L_JUSTIFIED;
-    box.y = 500;
-    box.w = 150;
-    box.h = 35;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-    // PPU Cycle Value
-    std::string s_cycle = to_string(nes.ppu.cycles);
-    const char *cycle = s_cycle.c_str();
-    surface = TTF_RenderText_Solid(lg_font, cycle, Blue);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = RIGHT_R_JUSTIFIED;
-    box.y = 500;
-    box.w = 100;
-    box.h = 35;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-    */
-
 }
 
 
@@ -603,34 +649,34 @@ inline void MARS::drawSystemComponents()
     // Draw MARS Title
     //std::string s_marsTitle = "M.A.R.S";
     const char *marsTitle = "M.A.R.S";
-    surface = TTF_RenderText_Solid(lg_font, marsTitle, Red);
+    surface = TTF_RenderText_Solid(space_font, marsTitle, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 150;
+    box.x = 100;
     box.y = 10;
-    box.w = 250;
-    box.h = 75;
+    box.w = 350;
+    box.h = 120;
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 
     //std::string s_marsSubTitle = "Marcus's Arcade System";
-    const char *marsSubTitle = "Marcus's Arcade System";
-    surface = TTF_RenderText_Solid(sm_font, marsSubTitle, Red);
+    const char *marsSubTitle = "Marcus's ARcade System";
+    surface = TTF_RenderText_Solid(styled_font, marsSubTitle, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 150;
-    box.y = 100;
-    box.w = 250;
+    box.x = 130;
+    box.y = 150;
+    box.w = 290;
     box.h = 45;
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 
     // Draw Selected Console
-    const char *consoleText = "Console: ";
-    surface = TTF_RenderText_Solid(sm_font, consoleText, Blue);
+    const char *consoleText = "CONSOLE: ";
+    surface = TTF_RenderText_Solid(styled_font, consoleText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = LEFT_L_JUSTIFIED;
-    box.y = 200;
+    box.y = 300;
     box.w = 200;
     box.h = 45;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -638,10 +684,10 @@ inline void MARS::drawSystemComponents()
     SDL_DestroyTexture(texture);
 
     const char *console = selectedConsole.c_str();
-    surface = TTF_RenderText_Solid(sm_font, console, White);
+    surface = TTF_RenderText_Solid(styled_font, console, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = LEFT_R_JUSTIFIED;
-    box.y = 200;
+    box.y = 300;
     box.w = 150;
     box.h = 45;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -650,11 +696,11 @@ inline void MARS::drawSystemComponents()
 
 
     // Draw Selected Game
-    const char *gameText = "Game: ";
-    surface = TTF_RenderText_Solid(sm_font, gameText, Blue);
+    const char *gameText = "GAME: ";
+    surface = TTF_RenderText_Solid(styled_font, gameText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = LEFT_L_JUSTIFIED;
-    box.y = 250;
+    box.y = 350;
     box.w = 200;
     box.h = 45;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -662,24 +708,24 @@ inline void MARS::drawSystemComponents()
     SDL_DestroyTexture(texture);
 
     const char *game = selectedGame.c_str();
-    surface = TTF_RenderText_Solid(sm_font, game, White);
+    surface = TTF_RenderText_Solid(styled_font, game, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = LEFT_R_JUSTIFIED;
-    box.y = 250;
+    box.y = 350;
     box.w = 200;
     box.h = 45;
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 
-
+    Y = 900;
     // Draw Global Counter Text
     //std::string str = "Global Cycle:";
-    const char *gCountText = "Global Cycle:";
-    surface = TTF_RenderText_Solid(lg_font, gCountText, Blue);
+    const char *gCountText = "GLOBAL CYCLE:";
+    surface = TTF_RenderText_Solid(styled_font, gCountText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_L_JUSTIFIED;
-    box.y = 1000;
+    box.y = 950;
     box.w = 125;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -692,7 +738,7 @@ inline void MARS::drawSystemComponents()
     surface = TTF_RenderText_Solid(lg_font, gCountVal, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_R_JUSTIFIED;
-    box.y = 1000;
+    box.y = 950;
     box.w = 150;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -702,11 +748,11 @@ inline void MARS::drawSystemComponents()
 
     // Draw Instruction Text
     //std::string str3 = "Instruction:";
-    const char *instructText = "Instruction:";
-    surface = TTF_RenderText_Solid(lg_font, instructText, Blue);
+    const char *instructText = "INSTRUCTION:";
+    surface = TTF_RenderText_Solid(styled_font, instructText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_L_JUSTIFIED;
-    box.y = 1050;
+    box.y = 1000;
     box.w = 150;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -719,7 +765,7 @@ inline void MARS::drawSystemComponents()
     surface = TTF_RenderText_Solid(lg_font, instructVal, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_R_JUSTIFIED;
-    box.y = 1050;
+    box.y = 1000;
     box.w = 100;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -729,11 +775,11 @@ inline void MARS::drawSystemComponents()
 
     // Draw Address Mode Text
     //std::string str4 = "Addr Mode:";
-    const char *addrmodeText = "Addr Mode:";
-    surface = TTF_RenderText_Solid(lg_font, addrmodeText, Blue);
+    const char *addrmodeText = "ADDR MODE:";
+    surface = TTF_RenderText_Solid(styled_font, addrmodeText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_L_JUSTIFIED;
-    box.y = 1100;
+    box.y = 1050;
     box.w = 150;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -746,7 +792,7 @@ inline void MARS::drawSystemComponents()
     surface = TTF_RenderText_Solid(lg_font, addrmode, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_R_JUSTIFIED;
-    box.y = 1100;
+    box.y = 1050;
     box.w = 100;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -756,11 +802,11 @@ inline void MARS::drawSystemComponents()
 
     // Draw Opcodes Text
     //std::string str5 = "Opcodes:";
-    const char *optext = "Opcodes:";
-    surface = TTF_RenderText_Solid(lg_font, optext, Blue);
+    const char *optext = "OPCODES:";
+    surface = TTF_RenderText_Solid(styled_font, optext, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_L_JUSTIFIED;
-    box.y = 1150;
+    box.y = 1100;
     box.w = 125;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -778,7 +824,7 @@ inline void MARS::drawSystemComponents()
     surface = TTF_RenderText_Solid(lg_font, opcode, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = RIGHT_R_JUSTIFIED;
-    box.y = 1150;
+    box.y = 1100;
     box.w = 200;
     box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
@@ -788,23 +834,24 @@ inline void MARS::drawSystemComponents()
 
     // Draw Disassembly Log Title
     //const char *logTitle = "- Disassembly -";
-    surface = TTF_RenderText_Solid(lg_font, "~ Disassembly ~", Red);
+    surface = TTF_RenderText_Solid(styled_font, "- DISASSEMBLY -", Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     box.x = 150;
-    box.y = 350;
+    box.y = 475;
     box.w = 250;
-    box.h = 25;
+    box.h = 30;
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 
+    
     // Draw System Disassembly
     auto vDisassembly = nes.cpu.d.disassembly;
     int j = 0;
-    X = 75;
-    Y = 400;
+    X = LEFT_L_JUSTIFIED;
+    Y = 525;
     W = 425;
-    H = 30;
+    H = 35;
 
     for(auto i = 0; i != vDisassembly.size(); i++)
     {
@@ -823,205 +870,15 @@ inline void MARS::drawSystemComponents()
         j++;
 
     }; 
-
-    // Draw NES Bus Title
-    /*
-    const char *busTitle = "- Bus Contents-";
-    surface = TTF_RenderText_Solid(lg_font, busTitle, Red);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 150;
-    box.y = 1000;
-    box.w = 200;
-    box.h = 25;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-    */
-
-    /*
-    // Draw Addr Text on Bus
-    const char *addrText = "Addr:";
-    surface = TTF_RenderText_Solid(lg_font, addrText, Blue);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 100;
-    box.y = 1050;
-    box.w = 100;
-    box.h = 25;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-    // Draw Addr Value on Bus
-    text_ss.str( std::string() );
-    text_ss.clear();
-    text_ss << std::hex << (int)nes.bus_addr;
-    const char *busaddr = text_ss.str().c_str();
-    surface = TTF_RenderText_Solid(lg_font, busaddr, White);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 225;
-    box.y = 1050;
-    box.w = 150;
-    box.h = 25;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-    // Draw Data Text on Bus
-    const char *dataText = "Data:";
-    surface = TTF_RenderText_Solid(lg_font, dataText, Blue);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 100;
-    box.y = 1080;
-    box.w = 100;
-    box.h = 25;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-    // Draw Data Value on Bus
-    text_ss.str( std::string() );
-    text_ss.clear();
-    text_ss << std::hex << (int)nes.bus_data;
-    const char *busdata = text_ss.str().c_str();
-    surface = TTF_RenderText_Solid(lg_font, busdata, White);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 225;
-    box.y = 1080;
-    box.w = 75;
-    box.h = 25;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-    // Draw Access Type Text on Bus
-    const char *aTypeText = "Access Type:";
-    surface = TTF_RenderText_Solid(lg_font, aTypeText, Blue);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 100;
-    box.y = 1110;
-    box.w = 100;
-    box.h = 25;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-    // Draw Access Type Value on Bus
-    const char *aTypeVal = nes.bus_accessType.c_str();
-    surface = TTF_RenderText_Solid(lg_font, aTypeVal, Green);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 225;
-    box.y = 1110;
-    box.w = 200;
-    box.h = 25;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-    */
-
-    // Draw Controller Text
-    const char *controlText = "Controller";
-    surface = TTF_RenderText_Solid(lg_font, controlText, Blue);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 100;
-    box.y = 1160;
-    box.w = 100;
-    box.h = 25;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-    // Draw Controller Value
-    std::bitset<8> control = (int)nes.controllers[0];
-    std::string button = "RLDUsSBA";
-    X = 225;
-    Y = 1160;
-    W = 25;
-    H = 25;
-
-    for(int i = 0; i <= 8; i++)
-    {
-        std::string s_controlAlp;
-        std::string s_controlVal = control.to_string();
-
-        char controlBit = button[i];
-        s_controlAlp = controlBit;
-        const char *controlVal = s_controlAlp.c_str();
-
-        if(control[i] == 0)
-        {
-            surface = TTF_RenderText_Solid(sm_font, controlVal, Red);
-        }
-        else
-        {
-            surface = TTF_RenderText_Solid(sm_font, controlVal, Green);
-        };
-        texture = SDL_CreateTextureFromSurface(renderer, surface);
-        box.x = X;
-        box.y = Y;
-        box.w = W;
-        box.h = H;
-        X += 25;
-        SDL_RenderCopy(renderer, texture, NULL, &box);
-        SDL_FreeSurface(surface);
-        SDL_DestroyTexture(texture);
-    };
-
-
-    // Draw Controller State Text
-    const char *controlStateText = "Controller State";
-    surface = TTF_RenderText_Solid(lg_font, controlStateText, Blue);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 100;
-    box.y = 1200;
-    box.w = 100;
-    box.h = 25;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-
-    // Draw Controller State Value
-    std::bitset<8> controlState = (int)nes.controllerState[0];
-    X = 225;
-    Y = 1200;
-    W = 25;
-    H = 25;
-
-    for(int i = 0; i <= 8; i++)
-    {
-        std::string s_controlStateVal = controlState.to_string();
-
-        char controlStateBit = s_controlStateVal[i];
-        s_controlStateVal = controlStateBit;
-        const char *controlStateVal = s_controlStateVal.c_str();
-
-        if(control[i] == 0)
-        {
-            surface = TTF_RenderText_Solid(sm_font, controlStateVal, Red);
-        }
-        else
-        {
-            surface = TTF_RenderText_Solid(sm_font, controlStateVal, Green);
-        };
-        texture = SDL_CreateTextureFromSurface(renderer, surface);
-        box.x = X;
-        box.y = Y;
-        box.w = W;
-        box.h = H;
-        X += 25;
-        SDL_RenderCopy(renderer, texture, NULL, &box);
-        SDL_FreeSurface(surface);
-        SDL_DestroyTexture(texture);
-    };
-
-
+    
     // Draw FPS Text
     const char *fpsText = "FPS";
-    surface = TTF_RenderText_Solid(sm_font, fpsText, Red);
+    surface = TTF_RenderText_Solid(styled_font, fpsText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 2325;
-    box.y = 50;
-    box.w = 70;
-    box.h = 50;
+    box.x = RIGHT_L_JUSTIFIED;
+    box.y = 250;
+    box.w = 90;
+    box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
@@ -1030,106 +887,50 @@ inline void MARS::drawSystemComponents()
     // Draw Framerate
     std::string sFps = std::to_string(FPS);
     const char *fpsVal = sFps.c_str();
-    surface = TTF_RenderText_Solid(sm_font, fpsVal, Gold);
+    surface = TTF_RenderText_Solid(lg_font, fpsVal, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 2425;
-    box.y = 50;
-    box.w = 50;
-    box.h = 50;
+    box.x = RIGHT_R_JUSTIFIED - 50;
+    box.y = 250;
+    box.w = 75;
+    box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 
     // Draw Nes Clock Speed Text
     const char *csText = "CLOCK SPEED";
-    surface = TTF_RenderText_Solid(sm_font, csText, Red);
+    surface = TTF_RenderText_Solid(styled_font, csText, Red);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 2325;
-    box.y = 100;
-    box.w = 70;
-    box.h = 50;
+    box.x = RIGHT_L_JUSTIFIED;
+    box.y = 300;
+    box.w = 120;
+    box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
     
 
     // Draw Nes Clock Speed 
-    sFps = std::to_string((nesClockSpeed));
-    const char *clockspeed = sFps.c_str();
-    surface = TTF_RenderText_Solid(sm_font, clockspeed, Gold);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 2425;
-    box.y = 100;
-    box.w = 90;
-    box.h = 50;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-    nesClockSpeed = 0.0;
-
-    // Draw MARS Rendering Speed Text
-    const char *rsText = "REND SPEED";
-    surface = TTF_RenderText_Solid(sm_font, rsText, Red);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 2325;
-    box.y = 150;
-    box.w = 70;
-    box.h = 50;
-    SDL_RenderCopy(renderer, texture, NULL, &box);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-    
-
-    // Draw MARS Rendering Clock Speed 
     marsSpeed = SDL_GetTicks();
     marsSpeed = (marsSpeed - marsStart);
     marsStart = SDL_GetTicks();
-
     sFps = std::to_string((marsSpeed));
-    const char *rendspeed = sFps.c_str();
-    surface = TTF_RenderText_Solid(sm_font, rendspeed, Gold);
+    const char *mars_clock = sFps.c_str();
+    surface = TTF_RenderText_Solid(lg_font, mars_clock, White);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    box.x = 2425;
-    box.y = 150;
-    box.w = 90;
-    box.h = 50;
+    box.x = RIGHT_R_JUSTIFIED - 50;
+    box.y = 300;
+    box.w = 75;
+    box.h = 35;
     SDL_RenderCopy(renderer, texture, NULL, &box);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
-    nesClockSpeed = 0.0;
+
 }
 
 
-inline void MARS::drawPixels()
+void MARS::drawPixels()
 {
-    /*
-    if (nes.ppu.frameComplete == true || debMode == true)
-    {
-        SDL_RenderSetLogicalSize(renderer, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-        //auto pix = nes.ppu.getScreenPixels();
-        testCounter = 0;
-
-        for (auto i = nes.ppu.screenPixels.begin(); i != nes.ppu.screenPixels.end(); i++)
-        {
-            // Set Color of Pixel Value
-            SDL_SetRenderDrawColor(renderer, nes.ppu.screenPixels[testCounter].red, nes.ppu.screenPixels[testCounter].green, nes.ppu.screenPixels[testCounter].blue, 255);
-
-            // Draw pixel on Coordinate Plane
-            SDL_RenderDrawPoint(renderer, nes.ppu.screenPixels[testCounter].X, nes.ppu.screenPixels[testCounter].Y);
-            testCounter++;
-        };
-
-        SDL_RenderPresent(renderer);
-        SDL_RenderSetLogicalSize(renderer, WIDTH, HEIGHT);
-        drawPatternTables();
-
-        if (nes.ppu.frameComplete)
-        {
-            nes.ppu.frameComplete = false;
-            nes.ppu.screenPixels.clear();
-        };
-    };
-    */
 
     if (nes.ppu.frameComplete == true ) // || debMode == true
     {
@@ -1183,8 +984,8 @@ inline void MARS::drawPatternTables()
     // Draw Left Plane Pattern Table
     uint32_t j = 0;
 
-    uint32_t* leftPlaneBuffer = nullptr;
-    uint32_t* rightPlaneBuffer = nullptr;
+    leftPlaneBuffer = nullptr;
+    rightPlaneBuffer = nullptr;
     int32_t location;
     int32_t pitch = 0;
     pat.texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 128, 128);
@@ -1215,8 +1016,8 @@ inline void MARS::drawPatternTables()
             leftPlaneBuffer[location] = aRGB(plane.left[j].red, plane.left[j].green, plane.left[j].blue, 255);
             ++j;
         };
-        pat.box.x = 2000;
-        pat.box.y = 50;
+        pat.box.x = RIGHT_L_JUSTIFIED;
+        pat.box.y = 0;
         pat.box.w = 128;
         pat.box.h = 128;
         SDL_UnlockTexture(pat.texture);
@@ -1249,11 +1050,11 @@ inline void MARS::drawPatternTables()
             {
                 location =  (plane.right[j].Y * 128) + plane.right[j].X;
             };
-            leftPlaneBuffer[location] = aRGB(plane.right[j].red, plane.right[j].green, plane.right[j].blue, 255);
+            rightPlaneBuffer[location] = aRGB(plane.right[j].red, plane.right[j].green, plane.right[j].blue, 255);
             ++j;
         };
-        pat.box.x = 2150;
-        pat.box.y = 50;
+        pat.box.x = RIGHT_L_JUSTIFIED + 150;
+        pat.box.y = 0;
         pat.box.w = 128;
         pat.box.h = 128;
         SDL_UnlockTexture(pat.texture);
@@ -1278,25 +1079,14 @@ inline void MARS::drawPalettes()
     auto palettes = nes.ppu.getPalettes();
 
     int i = 0;
-    X = RIGHT_L_JUSTIFIED;
-    Y = 200;
+    X = RIGHT_L_JUSTIFIED ;
+    Y = 180;
     W = 20;
     H = 20;
-    int indx = 0;
+    int indx = 1;
 
     for (auto j = palettes.begin(); j != palettes.end(); j++)
     {
-        if(indx == 4 ||  indx == 12 || indx == 20 ||  indx == 28)
-        {
-            Y = 220;
-            X = X - 80;
-        };
-
-        if (indx == 8  || indx == 16 || indx == 24 || indx == 32)
-        {
-            Y = 200;
-            X = X + 40;
-        };
 
         SDL_SetRenderDrawColor(renderer, palettes[i].red, palettes[i].green, palettes[i].blue, 255);
         box.x = X;
@@ -1304,8 +1094,23 @@ inline void MARS::drawPalettes()
         box.w = W;
         box.h = H;
         SDL_RenderFillRect(renderer, &box);
+        if((indx == 4) || (indx == 8) || (indx == 12) || (indx == 20) || (indx == 24) || (indx == 28))
+        {
+            //Y += 40;
+            X += 40;
+        }
 
-        X += 20;
+        else if (indx == 16)
+        {
+            Y += 25;
+            X = RIGHT_L_JUSTIFIED;
+        }
+        else
+        {
+            X += 20;
+        }
+
+        
 
         i++;
         indx++;
@@ -1336,7 +1141,7 @@ void MARS::logWrite()
             wLog << " SP:";   wLog << std::hex << (int) nes.cpu.reg.S;
 
             //wLog << "\t R/W:";  wLog << nes.bus_accessType;
-            wLog << "\t\t Controller:";  wLog << std::hex << (int) nes.controllers[0];
+            //wLog << "\t\t Controller:";  wLog << std::hex << (int) nes.controllers[0];
             //wLog << "\t\t Controller State:";  wLog << std::hex << (int) nes.controllerState[0];
 
 
@@ -1362,6 +1167,7 @@ void MARS::drawScreen()
         drawPalettes();
         drawPatternTables();
         drawSystemComponents();
+        //drawRam();
 
         SDL_RenderPresent(renderer);
     };
@@ -1373,17 +1179,20 @@ bool MARS::eventHandler()
     bool On = true;
     debMode = false;
 
-    nesClockStart = SDL_GetTicks();
     while (On)
     {
-        nes.systemClock();
-        //logWrite();
+        frame_start = SDL_GetTicks();
 
+        // Clock an entire frame
+        while(nes.ppu.frameComplete == false)
+        {
+            nes.systemClock();
+            // logWrite();
+        };
+
+        // Render and get User Input in between Frames
         if(nes.ppu.frameComplete == true)
         {
-            ticks = SDL_GetTicks();
-            marsStart = SDL_GetTicks();
-            nesClockSpeed = (double)(ticks - nesClockStart);
 
             if (SDL_PollEvent(&event))
             {
@@ -1401,8 +1210,8 @@ bool MARS::eventHandler()
                 };
             };
 
+            // Calculate Framerate
             ticks = SDL_GetTicks();
-
             if ((ticks - prevTick) > 1000) 
             {
                 prevTick = ticks;
@@ -1413,9 +1222,20 @@ bool MARS::eventHandler()
             {
                 count++;
             };
+
+            // Gets Input for NES controller
             getControllerState();
+
+            // Finally Draw the frame
             drawScreen();
-            nesClockStart = SDL_GetTicks();
+
+            frame_end = SDL_GetTicks();
+
+            // Set to 60 frames per second
+            while((frame_end - frame_start) < 16)
+            {
+                frame_end = SDL_GetTicks();
+            };
         };
     };
     SDL_DestroyRenderer(renderer);
@@ -1454,11 +1274,13 @@ void MARS::init()
     SDL_Init(SDL_INIT_VIDEO);
     TTF_Init();
     
-    // Main window & Debug window
-    window = SDL_CreateWindow("MARS", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, 0);
-
-    // Main Renderer & Debug Renderer
+    // Main window & Main Renderer
+    window = SDL_CreateWindow("MARS", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_FULLSCREEN);;
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    // Debug window & Debug Renderer
+    //wind_debug = SDL_CreateWindow("MARS", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1800, 1000, 0);
+    //rend_debug = SDL_CreateRenderer(wind_debug, -1, SDL_RENDERER_ACCELERATED);
 
     pixelTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
@@ -1466,23 +1288,24 @@ void MARS::init()
     lg_font = TTF_OpenFont("fonts/Anonymous.ttf", 80);
     TTF_SetFontStyle(lg_font, TTF_STYLE_BOLD);
 
-    sm_font = TTF_OpenFont("fonts/Anonymous.ttf", 80);
+    styled_font = TTF_OpenFont("fonts/NoSurrenderItalic.ttf", 80);
+    sm_font = TTF_OpenFont("fonts/Urial.ttf", 80);
+    space_font = TTF_OpenFont("fonts/Gatsby.ttf", 80);
 
-    uint8_t console = 1;
+    uint8_t console = 4;
     switch (console)
     {
         case 1:
-            cart = std::make_shared<Cartridge>("roms/nestest.nes");
+            cart = std::make_shared<Cartridge>("roms/Nestest.nes");
             if (!cart->ImageValid())
             {
 			    SDL_Quit();
             };
             selectedGame = "NES Test";
             break;
-            break;
 
         case 2:
-            cart = std::make_shared<Cartridge>("roms/donkeykong.nes");
+            cart = std::make_shared<Cartridge>("roms/DonkeyKong.nes");
             if (!cart->ImageValid())
             {
 			    SDL_Quit();
@@ -1491,7 +1314,7 @@ void MARS::init()
             break;
 
         case 3:
-            cart = std::make_shared<Cartridge>("roms/iceclimber.nes");
+            cart = std::make_shared<Cartridge>("roms/IceClimber.nes");
             if (!cart->ImageValid())
             {
 			    SDL_Quit();
@@ -1500,12 +1323,35 @@ void MARS::init()
             break;
 
         case 4:
-            cart = std::make_shared<Cartridge>("roms/Super Mario Bros. (Japan, USA).nes");
+            cart = std::make_shared<Cartridge>("roms/SuperMarioBros.nes");
             if (!cart->ImageValid())
             {
 			    SDL_Quit();
             };
             selectedGame = "Super Mario Bros";
+            break;
+        case 5:
+            cart = std::make_shared<Cartridge>("roms/Dr.Mario.nes");
+            if (!cart->ImageValid())
+            {
+			    SDL_Quit();
+            };
+            selectedGame = "Dr. Mario";
+        case 6:
+            cart = std::make_shared<Cartridge>("roms/SpaceInvaders.nes");
+            if (!cart->ImageValid())
+            {
+			    SDL_Quit();
+            };
+            selectedGame = "Space Invaders";
+            break;
+        case 7:
+            cart = std::make_shared<Cartridge>("roms/Pac-Man.nes");
+            if (!cart->ImageValid())
+            {
+			    SDL_Quit();
+            };
+            selectedGame = "Pac-Man";
             break;
         
         default:
@@ -1525,6 +1371,8 @@ int main(int argc, char* argv[])
     //mars.debugMode();       // Debugger Event Handler
     mars.eventHandler();    // Main Event Handler
     SDL_Quit();
+
+    return 0;
 }
 
 

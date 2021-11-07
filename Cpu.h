@@ -83,8 +83,9 @@ class Cpu
         void nmi();         // Non-maskable Interrupt
 
         // CPU executor & fetcher
-        uint16_t execute();                   // Execute instruction 
+        uint16_t tick();                   // Execute instruction 
         inline uint8_t fetchInstruction();       // Fetch 
+        uint8_t transferDMA(uint8_t &addr_offset, uint8_t &dma_addr);
 
 
     private:
@@ -166,5 +167,6 @@ class Cpu
 
         inline void setDisassemblyLog(std::string &disassembly);
         inline void setDisassemblyOp(uint8_t op1, uint8_t op2, bool multiple_op);
+        bool renderDisassembly = false;
 
 };
