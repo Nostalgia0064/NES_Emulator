@@ -62,6 +62,7 @@ void Ppu::reset()
     shift.palAttribLow = 0x0000;
     shift.patternLeft = 0x0000;
     shift.patternRight = 0x0000;
+    spr_init = 0;
 
 }
 
@@ -199,32 +200,21 @@ uint8_t Ppu::ppuRead(uint16_t addr)
             // Palettes
             case 0x3F00 ... 0x3FFF:
                 addr &= 0x001F;
-                switch(addr)
+
+                if (addr == 0x0010 || addr == 0x0014 || addr == 0x0018 || addr == 0x001C)
                 {
-                    case 0x0010:
-                        addr = 0x0000;
-                        break;
-                        
-                    case 0x0014: 
-                        addr = 0x0004;
-                        break;
-
-                    case 0x0018:
-                        addr = 0x0008;
-                        break;
-
-                    case 0x001C:
-                        addr = 0x000C;
-                        break;
+                    addr &= 0x000F;
                 };
                 // Check for Greyscalling pixel
                 if(getMaskBits(G))
                 {
-                    data = tbl.palettesMem[addr] & 0x30;
+                    data = tbl.palettesMem[addr];
+                    data &= 0x30;
                 }
                 else
                 {
-                    data = tbl.palettesMem[addr] & 0x3F;
+                    data = tbl.palettesMem[addr];
+                    data &= 0x3F;
                 }; 
                 break;
         };      
@@ -301,24 +291,12 @@ void Ppu::ppuWrite(uint16_t addr, uint8_t data)
             // Palettes
             case 0x3F00 ... 0x3FFF:
                 addr &= 0x001F;
-                switch(addr)
+
+                if (addr == 0x0010 || addr == 0x0014 || addr == 0x0018 || addr == 0x001C)
                 {
-                    case 0x0010:
-                        addr = 0x0000;
-                        break;
-                        
-                    case 0x0014: 
-                        addr = 0x0004;
-                        break;
-
-                    case 0x0018:
-                        addr = 0x0008;
-                        break;
-
-                    case 0x001C:
-                        addr = 0x000C;
-                        break;
+                    addr &= 0x000F;
                 };
+
                 tbl.palettesMem[addr] = data;
                 break;
 
@@ -741,7 +719,7 @@ inline void Ppu::strobeShiftRegisters()
     };
 
     // If SPR rendering enabled
-    if(getMaskBits(s) && cycles >= 1 && cycles <= 256)
+    if(getMaskBits(s) && cycles >= 1 && cycles <= 257)
     {
         for (int i = 0; i < spritesThisLine; i++)
         {
@@ -899,7 +877,11 @@ void Ppu::fetchSprites()
         case 7:
             
             // Determine the type of Flip Performed on Fetched Sprite
-            if(fetchedSprite.attributes & 0x40)
+            if((fetchedSprite.attributes & 0xC0) == 0xC0)
+            {
+                sprite_flip = BOTH;
+            }
+            else if(fetchedSprite.attributes & 0x40)
             {
                 sprite_flip = HORIZONTAL;
             }
@@ -916,39 +898,20 @@ void Ppu::fetchSprites()
             if(getControllerFlags(H))
             {
                 // Determine if reading hi or low of the 8x16 tile
-                uint8_t isloTile = (uint8_t)((scanLine - fetchedSprite.positionY) < 8) & 0x01;
-
+                uint8_t isloTile = ((scanLine - fetchedSprite.positionY) < 8) & 0x01;
 
                 // Place Addr in Sprite Shift Registers
-                if (sprite_flip == VERTICAL)
+                if (sprite_flip == VERTICAL || sprite_flip == BOTH)
                 {
-                    if ((scanLine - fetchedSprite.positionY) < 8)
-                    {
-                        sprShift[sOAM_counter].lo_patternAddr = ((fetchedSprite.tileIndex & 0x01) << 12)  // Bank ($0000 or $1000) of tiles
-                            | (((fetchedSprite.tileIndex & 0xFE) + 1) << 4)               // Tile column (16 byte offset)
-                            | (7 - (scanLine - fetchedSprite.positionY) & 0x07);                          // Fine Y offset
-                    }
-                    else 
-                    {
-                        sprShift[sOAM_counter].lo_patternAddr = ((fetchedSprite.tileIndex & 0x01) << 12)  // Bank ($0000 or $1000) of tiles
-                            | (((fetchedSprite.tileIndex & 0xFE) + 0) << 4)               // Tile column (16 byte offset)
-                            | (7 - (scanLine - fetchedSprite.positionY) & 0x07);                          // Fine Y offset                        
-                    };
+                    sprShift[sOAM_counter].lo_patternAddr = ((fetchedSprite.tileIndex & 0x01) << 12)  // Bank ($0000 or $1000) of tiles
+                        | (((fetchedSprite.tileIndex & 0xFE) + isloTile) << 4)               // Tile column (16 byte offset)
+                        | (7 - (scanLine - fetchedSprite.positionY) & 0x07);                          // Fine Y offset 
                 }
                 else
                 {
-                    if ((scanLine - fetchedSprite.positionY) < 8)
-                    {
-                        sprShift[sOAM_counter].lo_patternAddr = ((fetchedSprite.tileIndex & 0x01) << 12)   // Sprite table select - Half of sprite table (0: "left"; 1: "right"))
-                            | (((fetchedSprite.tileIndex & 0xFE) + 0) << 4)                // Tile column (16 byte offset)
-                            | ((scanLine - fetchedSprite.positionY) & 0x07);                               // Fine Y offset
-                    }
-                    else
-                    {
-                        sprShift[sOAM_counter].lo_patternAddr = ((fetchedSprite.tileIndex & 0x01) << 12)   // Sprite table select - Half of sprite table (0: "left"; 1: "right"))
-                            | (((fetchedSprite.tileIndex & 0xFE) + 1) << 4)                // Tile column (16 byte offset)
-                            | ((scanLine - fetchedSprite.positionY) & 0x07);                               // Fine Y offset
-                    };
+                    sprShift[sOAM_counter].lo_patternAddr = ((fetchedSprite.tileIndex & 0x01) << 12)   // Sprite table select - Half of sprite table (0: "left"; 1: "right"))
+                        | (((fetchedSprite.tileIndex & 0xFE) + isloTile) << 4)                // Tile column (16 byte offset)
+                        | ((scanLine - fetchedSprite.positionY) & 0x07);                               // Fine Y offset
                 };
 
             }
@@ -956,7 +919,7 @@ void Ppu::fetchSprites()
             else
             {
                 // Place Addr in Sprite Shift Registers
-                if (sprite_flip == VERTICAL)
+                if (sprite_flip == VERTICAL || sprite_flip == BOTH)
                 {
                     sprShift[sOAM_counter].lo_patternAddr = (getControllerFlags(S) << 12)  // Sprite table select - Half of sprite table (0: "left"; 1: "right"))
                         | (fetchedSprite.tileIndex << 4)                                   // Tile column (16 byte offset)
@@ -967,7 +930,6 @@ void Ppu::fetchSprites()
                     sprShift[sOAM_counter].lo_patternAddr = (getControllerFlags(S) << 12)  // Sprite table select - Half of sprite table (0: "left"; 1: "right"))
                         | (fetchedSprite.tileIndex << 4)                                   // Tile column (16 byte offset)
 						| (scanLine - fetchedSprite.positionY);                            // Fine Y offset  
-
                 };
 
             };
@@ -981,7 +943,7 @@ void Ppu::fetchSprites()
             sprite_pattern_bits_hi = ppuRead(sprShift[sOAM_counter].hi_patternAddr);
 
             // Apply the Horizontal Flip to the Pattern Plane Once bits are read from PPU Bus
-            if (sprite_flip == HORIZONTAL)
+            if (sprite_flip == HORIZONTAL || sprite_flip == BOTH)
             {
                 // Apply to Low pattern
                 sprite_pattern_bits_lo = (sprite_pattern_bits_lo & 0xF0) >> 4 | (sprite_pattern_bits_lo & 0x0F) << 4;
@@ -1005,8 +967,6 @@ void Ppu::fetchSprites()
             sOAM_counter++;
             break;
 
-        default:
-            break;
     };
 }
 
@@ -1249,41 +1209,40 @@ void Ppu::tick()
                     }
                     
                                     
-                    // Sprite Evaluation
+                    // Sprite Evaluation - Visible Scanlines
                     if (scanLine >= 0)
                     {
                         // Initialize Secondary OAM - (every cycle : 64 cycles total)
                         if (cycles >= 1 && cycles <= 64)
                         {
-                            int i;
-                            i = (cycles - 1) % 4;
-                            if(i == 0 || (cycles == 0))
+                            switch((cycles - 1) % 4)
                             {
-                                second_OAM[spr_init].positionY = 0xFF;
-                            }
-                            else if (i == 2)
-                            {
-                                second_OAM[spr_init].tileIndex = 0xFF;
-                            }
-                            else if(i == 3)
-                            {
-                                second_OAM[spr_init].attributes = 0xFF;
-                            }
-                            else if(i == 4) 
-                            { 
-                                second_OAM[spr_init].positionX = 0xFF;
-                                spr_init++;
+                                case 0:
+                                    second_OAM[spr_init].positionY = 0xFF;
+                                    break;
+                                case 1:
+                                    second_OAM[spr_init].tileIndex = 0xFF;
+                                    break;
+                                case 2:
+                                    second_OAM[spr_init].attributes = 0xFF;
+                                    break;
+                                case 3:
+                                    second_OAM[spr_init].positionX = 0xFF;
+                                    if (spr_init != 7)
+                                        spr_init++;
+                                    else
+                                        spr_init = 0;                                   
+                                    break;
                             };
-
                         }
+
                         // Sprite Evaluating - pOAM -> sOAM
                         else if(cycles >= 65 && cycles <= 256)
                         {
-                            // Reset sprites found and initializer counter
+                            // Reset sprites found
                             if (cycles == 65)
                             {
                                 sprites_found = 0;
-                                spr_init = 0;
                             };
 
                             // Primary OAM Data is written to secondary OAM on Even Cycles
@@ -1315,7 +1274,7 @@ void Ppu::tick()
                     // Reset Coarse X & Load last of background data into Shift registers
                     if (cycles == 257)
                     {
-                        // Update Background Shifters with Fetched tiles
+                        // Update Background Shifters with last of Fetched tiles
                         updateBackgroundShiftRegisters();
 
                         // Reset X Addresses
@@ -1352,13 +1311,16 @@ void Ppu::tick()
                                 setStatusBits(O, true);
                             };
 
-                            // Set sprites found to align with this scanline
-                            spritesThisLine = sprites_found;
-
                         };
 
                         // Fetch Sprites & Place into shift registers
                         fetchSprites();
+
+                        // Set sprites found to align with next scanline for rendering
+                        if (cycles == 320)
+                        {
+                            spritesThisLine = sprites_found;
+                        }
                     };
                     break;               
                         
@@ -1412,7 +1374,7 @@ void Ppu::tick()
                     NMI = true;
                 };
             };
-            if(scanLine == 260 && cycles > 280)
+            if(scanLine == 260 && cycles > 270)
             {
                 renderDisassembly = true;
             };
